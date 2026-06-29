@@ -1745,7 +1745,8 @@
             </div>
             <div class="preview-file-list" id="previewFileList"></div>
             <div class="preview-actions">
-                <button class="btn-primary" onclick="confirmDownload()">✅ Confirm & Download</button>
+                <button class="btn-primary" onclick="confirmDownload('pdf')">📄 Download PDF</button>
+                <button class="btn-primary" onclick="confirmDownload('zip')" style="background:linear-gradient(135deg,#e89530,#c97a1e);">📦 Download ZIP</button>
                 <button class="btn-share" onclick="shareZip()">📤 Share</button>
                 <button class="btn-print" onclick="printPreview()">🖨️ Print</button>
             </div>
@@ -2339,14 +2340,22 @@
             document.body.removeChild(a);
         }
 
-        async function confirmDownload() {
+        async function confirmDownload(mode) {
             const n = getNationalId();
             if (!n) return;
             if (!images.length) { showToast('⚠️ No images'); return; }
             const p = getPatientName();
             closePreviewModal();
-            showToast('⏳ Building PDF…');
 
+            if (mode === 'zip') {
+                await downloadZip(n, p);
+            } else {
+                await downloadPdf(n, p);
+            }
+        }
+
+        async function downloadPdf(n, p) {
+            showToast('⏳ Building PDF…');
             try {
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
@@ -2357,7 +2366,6 @@
                 for (let i = 0; i < images.length; i++) {
                     if (i > 0) pdf.addPage();
                     const dataUrl = images[i].dataUrl;
-                    // get image dimensions
                     await new Promise(resolve => {
                         const img = new Image();
                         img.onload = () => {
@@ -2379,7 +2387,6 @@
                 const pdfBlob = pdf.output('blob');
                 const fname = `${n}.pdf`;
 
-                // Try share (Safari browser)
                 if (navigator.share && navigator.canShare) {
                     const file = new File([pdfBlob], fname, { type: 'application/pdf' });
                     if (navigator.canShare({ files: [file] })) {
@@ -2389,7 +2396,6 @@
                     }
                 }
 
-                // PWA fallback: open PDF in new tab → user taps Share → Save to Files
                 const url = URL.createObjectURL(pdfBlob);
                 window.open(url, '_blank');
                 setTimeout(() => URL.revokeObjectURL(url), 60000);
@@ -2400,8 +2406,44 @@
             }
         }
 
+        async function downloadZip(n, p) {
+            showToast('⏳ Building ZIP…');
+            try {
+                const zip = new JSZip();
+                for (let i = 0; i < images.length; i++) {
+                    const fname = buildFileName(n, p, i + 1);
+                    const dataUrl = images[i].dataUrl;
+                    const base64 = dataUrl.split(',')[1];
+                    zip.file(fname, base64, { base64: true });
+                }
+
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                const zipName = `${n}.zip`;
+
+                if (navigator.share && navigator.canShare) {
+                    const file = new File([zipBlob], zipName, { type: 'application/zip' });
+                    if (navigator.canShare({ files: [file] })) {
+                        await navigator.share({ files: [file], title: zipName });
+                        showToast('✅ ZIP shared');
+                        return;
+                    }
+                }
+
+                const url = URL.createObjectURL(zipBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = zipName;
+                a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 60000);
+                showToast('📦 ZIP downloaded: ' + zipName);
+
+            } catch(e) {
+                if (e.name !== 'AbortError') showToast('❌ ' + e.message);
+            }
+        }
+
         async function shareZip() {
-            await confirmDownload();
+            await downloadZip(getNationalId(), getPatientName());
         }
 
         function printPreview() {

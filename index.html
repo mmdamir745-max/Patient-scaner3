@@ -1705,7 +1705,7 @@
         <div class="dl-row">
             <button class="btn-primary" onclick="showPreviewModal()" id="dlBtn" disabled>
                 <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Download All (ZIP)
+                Download All (PDF)
             </button>
             <button class="btn-outline" onclick="clearAll()">
                 <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6m4-6v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
@@ -1805,6 +1805,8 @@
     <div class="toast" id="toast"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js">
+</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     </script>
     <script>
         /* ═══════════════════════════════════════════
@@ -2343,64 +2345,59 @@
             if (!images.length) { showToast('⚠️ No images'); return; }
             const p = getPatientName();
             closePreviewModal();
+            showToast('⏳ Building PDF…');
 
-            // Try Web Share API first (works in Safari browser, not PWA)
-            if (navigator.share && navigator.canShare) {
-                try {
-                    const files = await Promise.all(images.map(async (img, i) => {
-                        const res = await fetch(img.dataUrl);
-                        const blob = await res.blob();
-                        return new File([blob], buildFileName(n, p, i + 1), { type: 'image/jpeg' });
-                    }));
-                    if (navigator.canShare({ files })) {
-                        await navigator.share({ files, title: `Patient Documents — ${n}` });
-                        showToast(`✅ ${images.length} images shared`);
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                const pageW = pdf.internal.pageSize.getWidth();
+                const pageH = pdf.internal.pageSize.getHeight();
+                const margin = 10;
+
+                for (let i = 0; i < images.length; i++) {
+                    if (i > 0) pdf.addPage();
+                    const dataUrl = images[i].dataUrl;
+                    // get image dimensions
+                    await new Promise(resolve => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const imgW = img.width, imgH = img.height;
+                            const maxW = pageW - margin * 2;
+                            const maxH = pageH - margin * 2;
+                            let w = maxW, h = (imgH / imgW) * maxW;
+                            if (h > maxH) { h = maxH; w = (imgW / imgH) * maxH; }
+                            const x = (pageW - w) / 2;
+                            const y = (pageH - h) / 2;
+                            const fmt = dataUrl.includes('image/png') ? 'PNG' : 'JPEG';
+                            pdf.addImage(dataUrl, fmt, x, y, w, h);
+                            resolve();
+                        };
+                        img.src = dataUrl;
+                    });
+                }
+
+                const pdfBlob = pdf.output('blob');
+                const fname = `${n}.pdf`;
+
+                // Try share (Safari browser)
+                if (navigator.share && navigator.canShare) {
+                    const file = new File([pdfBlob], fname, { type: 'application/pdf' });
+                    if (navigator.canShare({ files: [file] })) {
+                        await navigator.share({ files: [file], title: fname });
+                        showToast('✅ PDF shared');
                         return;
                     }
-                } catch(e) {
-                    if (e.name === 'AbortError') return;
                 }
+
+                // PWA fallback: open PDF in new tab → user taps Share → Save to Files
+                const url = URL.createObjectURL(pdfBlob);
+                window.open(url, '_blank');
+                setTimeout(() => URL.revokeObjectURL(url), 60000);
+                showToast('📄 PDF opened — tap Share → Save to Files');
+
+            } catch(e) {
+                if (e.name !== 'AbortError') showToast('❌ ' + e.message);
             }
-
-            // PWA fallback: open a new page with download buttons per image
-            showToast('⏳ Opening images…');
-            const html = `<!DOCTYPE html><html><head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width,initial-scale=1">
-                <title>${n}</title>
-                <style>
-                    body { margin:0; background:#111; font-family:-apple-system,sans-serif; }
-                    h2 { color:#fff; text-align:center; padding:16px; font-size:1rem; margin:0; background:#1a6fa8; }
-                    p { color:#aaa; text-align:center; font-size:0.8rem; padding:8px 16px; margin:0 0 4px; }
-                    .grid { padding:12px; display:flex; flex-direction:column; gap:16px; }
-                    .item { background:#222; border-radius:12px; overflow:hidden; }
-                    .item img { width:100%; display:block; }
-                    .item a {
-                        display:block; text-align:center;
-                        background:#1a6fa8; color:#fff;
-                        padding:12px; font-size:0.88rem; font-weight:600;
-                        text-decoration:none;
-                    }
-                </style>
-            </head><body>
-                <h2>📋 ${n} — ${images.length} Documents</h2>
-                <p>Tap each button to download</p>
-                <div class="grid">
-                ${images.map((img, i) => {
-                    const fname = buildFileName(n, p, i + 1);
-                    return `<div class="item">
-                        <img src="${img.dataUrl}" />
-                        <a href="${img.dataUrl}" download="${fname}">⬇️ ${fname}</a>
-                    </div>`;
-                }).join('')}
-                </div>
-            </body></html>`;
-
-            const blob = new Blob([html], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            window.open(url, '_blank');
-            setTimeout(() => URL.revokeObjectURL(url), 30000);
-            showToast('👆 Tap each button to download');
         }
 
         async function shareZip() {

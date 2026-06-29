@@ -931,10 +931,10 @@
             bottom: 24px;
             left: 50%;
             transform: translateX(-50%) translateY(80px);
-            background: var(--toast-bg);
+            background: rgba(20, 30, 48, 0.96);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            color: var(--text);
+            color: #f0f4f8;
             padding: 12px 24px;
             border-radius: 14px;
             font-size: 0.82rem;
@@ -1220,6 +1220,164 @@
             height: 30px;
             fill: white;
             filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+        }
+
+        .preview-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: var(--overlay-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 1100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: background 0.4s;
+        }
+        .preview-modal.open {
+            display: flex;
+            animation: lbIn 0.3s ease-out;
+        }
+        .preview-modal-content {
+            background: var(--modal-bg);
+            border: 1px solid var(--modal-border);
+            border-radius: 18px;
+            max-width: 680px;
+            width: 100%;
+            max-height: 90vh;
+            padding: 24px;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            transition: all 0.4s;
+        }
+        .preview-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .preview-modal-header h3 {
+            font-size: 1rem;
+            color: var(--text);
+            font-weight: 700;
+        }
+        .preview-modal-close {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+        .preview-modal-close:hover {
+            color: var(--danger);
+            background: var(--danger-glow);
+            border-color: var(--danger);
+        }
+        .preview-file-list {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 16px;
+            background: var(--file-list-bg);
+            transition: all 0.4s;
+        }
+        .preview-file-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        .preview-file-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .preview-file-list::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 10px;
+        }
+        .preview-file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 0;
+            border-bottom: 1px solid var(--file-border);
+            font-size: 0.85rem;
+            gap: 8px;
+            transition: background 0.15s;
+        }
+        .preview-file-item:last-child {
+            border-bottom: none;
+        }
+        .preview-file-item:hover {
+            background: var(--primary-glow);
+            border-radius: 8px;
+            padding: 7px 8px;
+            margin: 0 -8px;
+        }
+        .preview-file-item .fnum {
+            font-weight: 700;
+            color: var(--primary);
+            margin-right: 8px;
+        }
+        .preview-file-item .fname {
+            color: var(--text);
+            word-break: break-all;
+            font-size: 0.8rem;
+        }
+        .preview-file-item .ftype {
+            color: var(--text-muted);
+            font-size: 0.76rem;
+        }
+        .copy-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 4px 6px;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+            flex-shrink: 0;
+            border-radius: 6px;
+        }
+        .copy-btn:hover {
+            color: var(--primary);
+            background: var(--primary-glow);
+        }
+        .preview-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .preview-actions button {
+            flex: 1;
+            min-width: 90px;
+            justify-content: center;
+        }
+        .btn-share {
+            background: linear-gradient(135deg, #25D366, #1da85c);
+            color: white;
+            box-shadow: 0 4px 14px rgba(37, 211, 102, 0.25);
+        }
+        .btn-share:hover {
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.35);
+            transform: translateY(-1px);
+        }
+        .btn-print {
+            background: var(--input-bg);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+        }
+        .btn-print:hover {
+            background: var(--primary-glow);
+            color: var(--text);
+            border-color: var(--primary);
         }
 
         .camera-wrap.flash {
@@ -1545,7 +1703,7 @@
     <div class="card">
         <h2>Download Documents</h2>
         <div class="dl-row">
-            <button class="btn-primary" onclick="downloadAll()" id="dlBtn" disabled>
+            <button class="btn-primary" onclick="showPreviewModal()" id="dlBtn" disabled>
                 <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 Download All (ZIP)
             </button>
@@ -1576,6 +1734,22 @@
             </button>
         </div>
         <div class="lb-thumbs" id="lbThumbs"></div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="preview-modal" id="previewModal">
+        <div class="preview-modal-content">
+            <div class="preview-modal-header">
+                <h3>📋 ZIP File Preview</h3>
+                <button class="preview-modal-close" onclick="closePreviewModal()">✕</button>
+            </div>
+            <div class="preview-file-list" id="previewFileList"></div>
+            <div class="preview-actions">
+                <button class="btn-primary" onclick="confirmDownload()">✅ Confirm & Download</button>
+                <button class="btn-share" onclick="shareZip()">📤 Share</button>
+                <button class="btn-print" onclick="printPreview()">🖨️ Print</button>
+            </div>
+        </div>
     </div>
 
     <!-- Image Editor Modal -->
@@ -1892,15 +2066,8 @@
             return currentDocType || 'Untitled';
         }
 
-        // ---- Safe filename helper ----
-        function safeName(str) {
-            return str.replace(/[^a-zA-Z0-9_\-. ]/g, '').trim().replace(/\s+/g, '_');
-        }
-
         function buildFileName(n, p, i) {
-            const id = safeName(n);
-            const name = p ? '_' + safeName(p) : '';
-            return `${id}${name}_${String(i).padStart(2, '0')}.jpg`;
+            return `${n.trim()}${p.trim() ? '_' + p.trim().replace(/\s+/g,'_') : ''}_${String(i).padStart(2,'0')}.jpg`;
         }
 
         function getPatientName() {
@@ -1920,15 +2087,16 @@
         }
         document.getElementById('nationalId').addEventListener('input', validateNationalId);
 
-        // ================ Camera with zoom & focus ================
+        // ================ دوربین با زوم و فوکوس پیشرفته ================
         async function startCamera() {
             try {
+                // درخواست دوربین با رزولوشن بالا و نسبت ابعاد نزدیک به A4
                 stream = await navigator.mediaDevices.getUserMedia({
                     video: {
                         facingMode: facingMode,
                         width: { ideal: 2560 },
                         height: { ideal: 1440 },
-                        aspectRatio: { ideal: 1.414 }
+                        aspectRatio: { ideal: 1.414 } // نسبت A4
                     },
                     audio: false
                 });
@@ -1943,11 +2111,15 @@
                 document.getElementById('stopBtn').style.display = 'flex';
                 document.getElementById('captureBtn').disabled = false;
 
+                // دریافت track و اعمال تنظیمات پیشرفته
                 const track = stream.getVideoTracks()[0];
                 if (track) {
                     const capabilities = track.getCapabilities();
                     console.log('Camera capabilities:', capabilities);
+
+                    // ۱. تنظیم زوم خودکار (برای اسکن A4 از ۳۰ سانتی‌متر)
                     if (capabilities.zoom) {
+                        // زوم رو روی minimum بذار یا خیلی کم
                         const zoomMin = capabilities.zoom.min || 1.0;
                         await track.applyConstraints({
                             advanced: [{ zoom: zoomMin }]
@@ -1956,6 +2128,8 @@
                     } else {
                         console.warn('⚠️ Zoom not supported on this camera');
                     }
+
+                    // ۲. فوکوس خودکار پیوسته
                     if (capabilities.focusMode && capabilities.focusMode.includes('continuous')) {
                         await track.applyConstraints({
                             advanced: [{ focusMode: 'continuous' }]
@@ -1969,6 +2143,8 @@
                     } else {
                         console.warn('⚠️ Focus mode not supported');
                     }
+
+                    // ۳. نوردهی خودکار
                     if (capabilities.exposureMode && capabilities.exposureMode.includes('continuous')) {
                         await track.applyConstraints({
                             advanced: [{ exposureMode: 'continuous' }]
@@ -1977,6 +2153,8 @@
                     } else {
                         console.warn('⚠️ Exposure mode not supported');
                     }
+
+                    // (اختیاری) تنظیم وایت‌بالانس خودکار
                     if (capabilities.whiteBalanceMode && capabilities.whiteBalanceMode.includes('continuous')) {
                         await track.applyConstraints({
                             advanced: [{ whiteBalanceMode: 'continuous' }]
@@ -1985,10 +2163,10 @@
                     }
                 }
 
-                showToast('📷 Camera started with optimized settings');
+                showToast('📷 دوربین با تنظیمات بهینه فعال شد');
 
             } catch (e) {
-                showToast('❌ Camera error: ' + e.message);
+                showToast('❌ خطا در راه‌اندازی دوربین: ' + e.message);
                 console.error('Camera error:', e);
             }
         }
@@ -2010,6 +2188,7 @@
             stopCamera();
             await startCamera();
         }
+        // ===============================================================
 
         function capture() {
             const v = document.getElementById('video'),
@@ -2101,68 +2280,134 @@
             if (e.key === 'Escape') closeLightbox();
         }
 
-        // ---- fixed lbDownload ----
         function lbDownload() {
-            try {
-                const img = images[lbIndex];
-                if (!img) throw new Error('Image not found');
-                const n = getNationalId() || 'patient';
-                const doc = img.docType || 'document';
-                const a = document.createElement('a');
-                a.href = img.dataUrl;
-                a.download = `${safeName(n)}_${safeName(doc)}_${String(lbIndex+1).padStart(2,'0')}.jpg`;
-                a.click();
-            } catch (e) {
-                showToast('❌ Download error: ' + e.message);
-                console.error(e);
+            const a = document.createElement('a');
+            a.href = images[lbIndex].dataUrl;
+            a.download = buildFileName(getNationalId() || 'patient', getPatientName(), lbIndex + 1);
+            a.click();
+        }
+
+        function showPreviewModal() {
+            const n = getNationalId();
+            if (!n) {
+                showToast('⚠️ Please enter the patient\'s National ID');
+                document.getElementById('nationalId').focus();
+                return;
+            }
+            if (!validateNationalId()) {
+                showToast('⚠️ Invalid National ID');
+                return;
+            }
+            if (!images.length) {
+                showToast('⚠️ No images to download');
+                return;
+            }
+            const p = getPatientName();
+            document.getElementById('previewFileList').innerHTML = images.map((img, i) => {
+                const f = buildFileName(n, p, i + 1);
+                return `<div class="preview-file-item"><span><span class="fnum">#${i+1}</span> <span class="ftype">${img.docType||'Untitled'}</span></span><span class="fname">${f}</span><button class="copy-btn" onclick="copyFilename('${f}')" title="Copy filename">📋</button></div>`;
+            }).join('');
+            document.getElementById('previewModal').classList.add('open');
+        }
+
+        function closePreviewModal() {
+            document.getElementById('previewModal').classList.remove('open');
+        }
+
+        function copyFilename(f) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(f).then(() => showToast('✅ Filename copied: ' + f)).catch(() => fallbackCopy(f));
+            } else {
+                fallbackCopy(f);
             }
         }
 
-        // ---- NEW downloadAll (exactly like patient-doc-scanner.html) ----
-        async function downloadAll() {
+        function fallbackCopy(t) {
+            const a = document.createElement('textarea');
+            a.value = t;
+            a.style.cssText = 'position:fixed;opacity:0';
+            document.body.appendChild(a);
+            a.select();
             try {
-                const n = getNationalId();
-                if (!n) {
-                    showToast('⚠️ Please enter National ID');
-                    document.getElementById('nationalId').focus();
-                    return;
-                }
-                if (!validateNationalId()) {
-                    showToast('⚠️ Invalid National ID');
-                    return;
-                }
-                if (!images.length) {
-                    showToast('⚠️ No images to download');
-                    return;
-                }
-
-                const p = getPatientName();
-                showToast('⏳ Preparing ZIP…');
-
-                const zip = new JSZip();
-                const folderName = p ? `${n}_${p}` : n;
-                const folder = zip.folder(folderName);
-
-                images.forEach((img, i) => {
-                    const base64 = img.dataUrl.split(',')[1];
-                    if (!base64) throw new Error(`Image ${i+1} data invalid`);
-                    const docType = img.docType || 'Untitled';
-                    const fileName = `${safeName(n)}${p ? '_' + safeName(p) : ''}_${safeName(docType)}_${String(i+1).padStart(2, '0')}.jpg`;
-                    folder.file(fileName, base64, { base64: true });
-                });
-
-                const blob = await zip.generateAsync({ type: 'blob' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `Documents_${folderName}.zip`;
-                a.click();
-                setTimeout(() => URL.revokeObjectURL(url), 3000);
-                showToast(`✅ ${images.length} images downloaded`);
+                document.execCommand('copy');
+                showToast('✅ Filename copied: ' + t);
             } catch (e) {
-                showToast('❌ Download error: ' + e.message);
-                console.error(e);
+                showToast('❌ Copy failed');
             }
+            document.body.removeChild(a);
+        }
+
+        async function confirmDownload() {
+            const n = getNationalId();
+            if (!n) return;
+            if (!images.length) { showToast('⚠️ No images'); return; }
+            const p = getPatientName();
+            closePreviewModal();
+
+            // Try Web Share API first (works in Safari browser, not PWA)
+            if (navigator.share && navigator.canShare) {
+                try {
+                    const files = await Promise.all(images.map(async (img, i) => {
+                        const res = await fetch(img.dataUrl);
+                        const blob = await res.blob();
+                        return new File([blob], buildFileName(n, p, i + 1), { type: 'image/jpeg' });
+                    }));
+                    if (navigator.canShare({ files })) {
+                        await navigator.share({ files, title: `Patient Documents — ${p || n}` });
+                        showToast(`✅ ${images.length} images shared`);
+                        return;
+                    }
+                } catch(e) {
+                    if (e.name === 'AbortError') return;
+                }
+            }
+
+            // PWA fallback: open a new page with all images so user can long-press to save
+            showToast('⏳ Opening images…');
+            const html = `<!DOCTYPE html><html><head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width,initial-scale=1">
+                <title>Documents — ${p || n}</title>
+                <style>
+                    body { margin:0; background:#111; font-family:-apple-system,sans-serif; }
+                    h2 { color:#fff; text-align:center; padding:16px; font-size:1rem; margin:0; background:#1a6fa8; }
+                    p { color:#aaa; text-align:center; font-size:0.8rem; padding:8px 16px; margin:0; }
+                    .grid { padding:12px; display:flex; flex-direction:column; gap:12px; }
+                    .item { background:#222; border-radius:12px; overflow:hidden; }
+                    .item img { width:100%; display:block; }
+                    .item span { display:block; color:#aaa; font-size:0.72rem; padding:6px 10px; }
+                </style>
+            </head><body>
+                <h2>📋 ${p || n} — ${images.length} Documents</h2>
+                <p>Long-press each image → Save to Photos</p>
+                <div class="grid">
+                ${images.map((img, i) => `
+                    <div class="item">
+                        <img src="${img.dataUrl}" />
+                        <span>${buildFileName(n, p, i + 1)}</span>
+                    </div>`).join('')}
+                </div>
+            </body></html>`;
+
+            const blob = new Blob([html], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+            setTimeout(() => URL.revokeObjectURL(url), 30000);
+            showToast('👆 Long-press each image to save');
+        }
+
+        async function shareZip() {
+            await confirmDownload();
+        }
+
+        function printPreview() {
+            const c = document.getElementById('previewFileList').innerHTML,
+                w = window.open('', '_blank', 'width=600,height=400');
+            w.document.write(
+                `<html dir="ltr"><head><title>ZIP Preview</title><style>body{font-family:-apple-system,sans-serif;padding:20px;} .fnum{color:#1a6fa8;font-weight:600;} .fname{color:#1e2d3d;} .ftype{color:#6b7f93;font-size:0.8rem;} .preview-file-item{padding:6px 0;border-bottom:1px solid #ecf0f5;display:flex;justify-content:space-between;} h3{color:#1a6fa8;}</style></head><body><h3>📋 ZIP File Preview</h3>${c}<p style="margin-top:16px;color:#6b7f93;font-size:0.8rem;">Total: ${images.length} files</p></body></html>`
+            );
+            w.document.close();
+            setTimeout(() => w.print(), 500);
         }
 
         function clearAll() {
@@ -2258,13 +2503,13 @@
             showToast('✅ Image saved');
         }
 
-        // ================ Crop Modal ================
+        // ================ Crop Modal (canvas touch drag) ================
         let cropSourceDataUrl = null;
         let cropImg = null;
-        let cropRect = { x: 0, y: 0, w: 0, h: 0 };
-        let cropImgRect = { x: 0, y: 0, w: 0, h: 0 };
-        let cropInteract = null;
-        const HANDLE_R = 22;
+        let cropRect = { x: 0, y: 0, w: 0, h: 0 }; // in canvas display coords
+        let cropImgRect = { x: 0, y: 0, w: 0, h: 0 }; // where img is drawn on canvas
+        let cropInteract = null; // { type: 'move'|'handle', handle, startX, startY, startRect }
+        const HANDLE_R = 22; // touch handle radius px
 
         function openCropModal() {
             cropSourceDataUrl = document.getElementById('editorCanvas').toDataURL('image/jpeg', 0.92);
@@ -2286,6 +2531,7 @@
             const canvas = document.getElementById('cropCanvas');
             const aW = area.clientWidth;
             const aH = area.clientHeight;
+            // fit image into area
             const scale = Math.min(aW / cropImg.width, aH / cropImg.height);
             const iw = cropImg.width * scale;
             const ih = cropImg.height * scale;
@@ -2294,6 +2540,7 @@
             canvas.width = aW;
             canvas.height = aH;
             cropImgRect = { x: ix, y: iy, w: iw, h: ih };
+            // default crop: 10% inset
             const pad = 0.05;
             cropRect = {
                 x: ix + iw * pad,
@@ -2302,6 +2549,7 @@
                 h: ih * (1 - pad * 2)
             };
             drawCropCanvas();
+            // attach events
             canvas.addEventListener('mousedown', onCropDown);
             canvas.addEventListener('touchstart', onCropDown, { passive: false });
         }
@@ -2313,21 +2561,26 @@
             const { x: ix, y: iy, w: iw, h: ih } = cropImgRect;
             const { x: cx, y: cy, w: cw, h: ch } = cropRect;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // draw image
             ctx.drawImage(cropImg, ix, iy, iw, ih);
+            // dim outside crop
             ctx.fillStyle = 'rgba(0,0,0,0.55)';
             ctx.fillRect(0, 0, canvas.width, cy);
             ctx.fillRect(0, cy, cx, ch);
             ctx.fillRect(cx + cw, cy, canvas.width - cx - cw, ch);
             ctx.fillRect(0, cy + ch, canvas.width, canvas.height - cy - ch);
+            // crop border
             ctx.strokeStyle = '#fff';
             ctx.lineWidth = 2;
             ctx.strokeRect(cx, cy, cw, ch);
+            // rule of thirds lines
             ctx.strokeStyle = 'rgba(255,255,255,0.3)';
             ctx.lineWidth = 1;
             for (let i = 1; i < 3; i++) {
                 ctx.beginPath(); ctx.moveTo(cx + cw * i / 3, cy); ctx.lineTo(cx + cw * i / 3, cy + ch); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(cx, cy + ch * i / 3); ctx.lineTo(cx + cw, cy + ch * i / 3); ctx.stroke();
             }
+            // corner handles (large for touch)
             const corners = [
                 { x: cx,      y: cy,      id: 'tl' },
                 { x: cx + cw, y: cy,      id: 'tr' },
@@ -2344,6 +2597,7 @@
                 ctx.fillStyle = '#fff';
                 ctx.fill();
             });
+            // edge handles (mid-sides)
             const edges = [
                 { x: cx + cw / 2, y: cy,      id: 'tm' },
                 { x: cx + cw / 2, y: cy + ch, id: 'bm' },
@@ -2463,6 +2717,7 @@
         function applyCropModal() {
             const { x: ix, y: iy, w: iw, h: ih } = cropImgRect;
             const { x: cx, y: cy, w: cw, h: ch } = cropRect;
+            // convert display coords to image pixel coords
             const scaleX = cropImg.width / iw;
             const scaleY = cropImg.height / ih;
             const sx = (cx - ix) * scaleX;
@@ -2474,13 +2729,16 @@
             tc.getContext('2d').drawImage(cropImg, sx, sy, sw, sh, 0, 0, sw, sh);
             editorOriginalDataUrl = tc.toDataURL('image/jpeg', 0.92);
             editorRotation = 0;
+            // remove canvas listeners
             const canvas = document.getElementById('cropCanvas');
             canvas.removeEventListener('mousedown', onCropDown);
             canvas.removeEventListener('touchstart', onCropDown);
             cancelCropModal();
             renderEditorCanvas(editorOriginalDataUrl);
-            showToast('✅ Crop applied');
+            showToast('✅ برش اعمال شد');
         }
+        // ===============================================================
+    
 
         function showToast(m) {
             const t = document.getElementById('toast');

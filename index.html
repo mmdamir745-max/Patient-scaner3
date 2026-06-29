@@ -1607,7 +1607,7 @@
         </div>
         <div class="header-text">
             <h1>Patient Document Scanner</h1>
-            <p>Dr. Mohammad Mehdi Daee — Cardiologist</p>
+            <p>Dr. Mohammad Mehdi Daei — Interventional Cardiologist</p>
         </div>
         <div class="header-actions">
             <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme" aria-label="Toggle Theme">
@@ -2067,7 +2067,7 @@
         }
 
         function buildFileName(n, p, i) {
-            return `${n.trim()}${p.trim() ? '_' + p.trim().replace(/\s+/g,'_') : ''}_${String(i).padStart(2,'0')}.jpg`;
+            return `${n.trim()}_${String(i).padStart(2,'0')}.jpg`;
         }
 
         function getPatientName() {
@@ -2353,7 +2353,7 @@
                         return new File([blob], buildFileName(n, p, i + 1), { type: 'image/jpeg' });
                     }));
                     if (navigator.canShare({ files })) {
-                        await navigator.share({ files, title: `Patient Documents — ${p || n}` });
+                        await navigator.share({ files, title: `Patient Documents — ${n}` });
                         showToast(`✅ ${images.length} images shared`);
                         return;
                     }
@@ -2367,7 +2367,7 @@
             const html = `<!DOCTYPE html><html><head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width,initial-scale=1">
-                <title>Documents — ${p || n}</title>
+                <title>Documents — ${n}</title>
                 <style>
                     body { margin:0; background:#111; font-family:-apple-system,sans-serif; }
                     h2 { color:#fff; text-align:center; padding:16px; font-size:1rem; margin:0; background:#1a6fa8; }
@@ -2378,7 +2378,7 @@
                     .item span { display:block; color:#aaa; font-size:0.72rem; padding:6px 10px; }
                 </style>
             </head><body>
-                <h2>📋 ${p || n} — ${images.length} Documents</h2>
+                <h2>📋 ${n} — ${images.length} Documents</h2>
                 <p>Long-press each image → Save to Photos</p>
                 <div class="grid">
                 ${images.map((img, i) => `
